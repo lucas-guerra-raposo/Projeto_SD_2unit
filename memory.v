@@ -11,11 +11,12 @@ module memory (
     output wire [15:0] data_b
 );
 
-reg [15:0] ram16_16 [15:0];
+reg [15:0] ram [15:0];
 // declaracao da memoria RAM
 
 // registrador para armazenar o endereço de leitura
-reg [3:0] addr_reg;  // 2^4 = 16 posicoes de memoria
+reg [3:0] addr_a_reg;
+reg [3:0] addr_b_reg;  // 2^4 = 16 posicoes de memoria
 
 //inicializacao da memoria
 initial begin 
@@ -40,14 +41,15 @@ end
 always @(posedge clk) begin
     // escrita na memoria
     if (we)
-        ram[addr] <= data;
+        ram[addr_w] <= data_in;
 
-    // registro do endereco de leitura
-    addr_reg <= addr;
+    addr_a_reg <= addr_a;
+    addr_b_reg <= addr_b;
 end
 
 // leitura assincrona com base no endereco registrado
-assign q = ram[addr_reg];
+assign data_a = ram[addr_a_reg];
+assign data_b = ram[addr_b_reg];
 
 endmodule
 
