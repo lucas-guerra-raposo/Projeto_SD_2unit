@@ -27,8 +27,8 @@ module module_mini_cpu (
         M_COMPLETO = 2'b10,
         M_SO_NOME  = 2'b11;
 
-    reg [2:0] sr_ligar;
-    reg [2:0] sr_enviar;
+    reg [2:0] sr_ligar  = 3'b111;
+    reg [2:0] sr_enviar = 3'b111;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
