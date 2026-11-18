@@ -1,6 +1,6 @@
 module module_mini_cpu (
     input  wire        CLOCK_50,
-    input  wire [3:0]  KEY,
+    input  wire [3:2]  KEY,        // KEY[3] ligar/desligar, KEY[2] enviar
     input  wire [17:0] SW,
     output wire [7:0]  LCD_DATA,
     output wire        LCD_RS,
@@ -11,7 +11,6 @@ module module_mini_cpu (
 );
 
     wire clk = CLOCK_50;
-    wire rst = ~KEY[0];
     assign LCD_ON   = 1'b1;
     assign LCD_BLON = 1'b1;
 
@@ -34,23 +33,19 @@ module module_mini_cpu (
     reg [2:0] sr_ligar  = 3'b111;
     reg [2:0] sr_enviar = 3'b111;
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            sr_ligar  <= 3'b111;
-            sr_enviar <= 3'b111;
-        end else begin
-            sr_ligar  <= {sr_ligar[1:0],  KEY[3]};
-            sr_enviar <= {sr_enviar[1:0], KEY[2]};
-        end
+    always @(posedge clk) begin
+        sr_ligar  <= {sr_ligar[1:0],  KEY[3]};
+        sr_enviar <= {sr_enviar[1:0], KEY[2]};
     end
 
     wire ligar_solto  = sr_ligar[1]  & ~sr_ligar[2];
     wire enviar_solto = sr_enviar[1] & ~sr_enviar[2];
 
-    reg  [17:0] ir;
-    reg  [15:0] res_reg;
-    reg  [1:0]  lcd_modo;
-    reg         dest_off;
+    // Sem reset: o sistema parte destes valores iniciais (estado desligado)
+    reg  [17:0] ir       = 18'd0;
+    reg  [15:0] res_reg  = 16'd0;
+    reg  [1:0]  lcd_modo = M_APAGADO;
+    reg         dest_off = 1'b0;
 
     wire [2:0] opcode  = ir[17:15];
     wire [3:0] addr_w  = ir[14:11];
@@ -73,7 +68,6 @@ module module_mini_cpu (
 
     memory u_mem (
         .clk     (clk),
-        .rst     (rst),
         .clr     (clr),
         .we      (we),
         .addr_w  (addr_w),
@@ -105,7 +99,6 @@ module module_mini_cpu (
 
     lcd_display u_lcd (
         .clk      (clk),
-        .rst      (rst),
         .start    (lcd_start),
         .modo     (lcd_modo),
         .opcode   (opcode),
@@ -136,26 +129,18 @@ module module_mini_cpu (
         S_ESP_SOBE  = 4'd9,
         S_ESP_DESCE = 4'd10;
 
-    reg [3:0]  state, next_state;
+    reg [3:0]  state = S_DESLIGADO, next_state;
     reg [17:0] next_ir;
     reg [15:0] next_res;
     reg [1:0]  next_modo;
     reg        next_off;
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            state    <= S_DESLIGADO;
-            ir       <= 18'd0;
-            res_reg  <= 16'd0;
-            lcd_modo <= M_APAGADO;
-            dest_off <= 1'b0;
-        end else begin
-            state    <= next_state;
-            ir       <= next_ir;
-            res_reg  <= next_res;
-            lcd_modo <= next_modo;
-            dest_off <= next_off;
-        end
+    always @(posedge clk) begin
+        state    <= next_state;
+        ir       <= next_ir;
+        res_reg  <= next_res;
+        lcd_modo <= next_modo;
+        dest_off <= next_off;
     end
 
     always @(*) begin

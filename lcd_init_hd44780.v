@@ -52,9 +52,11 @@ module lcd_init_hd44780 (
         S_WAIT       = 3'd4,
         S_DONE       = 3'd5;
 
-    reg [2:0]  state, next_state;
-    reg [31:0] delay_cnt, next_delay_cnt;
-    reg [2:0]  cmd_idx, next_cmd_idx; // suporta até 8 comandos
+    // [Projeto 2] Valores iniciais iguais aos do reset: o projeto nao tem
+    // botao de reset (rst fica em 0). A logica e a mesma do Laboratorio 08.
+    reg [2:0]  state     = S_IDLE, next_state;
+    reg [31:0] delay_cnt = 32'd0,  next_delay_cnt;
+    reg [2:0]  cmd_idx   = 3'd0,   next_cmd_idx; // suporta até 8 comandos
 	 // valor do comando atual (proteção se cmd_idx >= NUM_CMDS)
     reg [7:0] current_cmd;
 

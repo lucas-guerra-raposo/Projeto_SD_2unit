@@ -1,6 +1,5 @@
 module lcd_display (
     input  wire       clk,
-    input  wire       rst,
     input  wire       start,
     input  wire [1:0] modo,
     input  wire [2:0] opcode,
@@ -49,7 +48,7 @@ module lcd_display (
 
     lcd_init_hd44780 lcd_init (
         .clk      (clk),
-        .rst      (rst),
+        .rst      (1'b0),          // projeto sem reset: parte dos valores iniciais
         .start    (start_init),
         .done     (init_done),
         .lcd_data (init_data),
@@ -66,7 +65,8 @@ module lcd_display (
 
     localparam integer MSG_LEN = 34;
 
-    localparam [31:0] DELAY_WRITE = 32'd50000;
+    // ~1 ms a 50 MHz. "parameter" so para o testbench poder acelerar a simulacao.
+    parameter  [31:0] DELAY_WRITE = 32'd50000;
     localparam [31:0] DELAY_PULSE = 32'd50;
 
     localparam [2:0]
@@ -76,9 +76,10 @@ module lcd_display (
         S_WAIT      = 3'd3,
         S_IDLE      = 3'd4;
 
-    reg [2:0]  state, next_state;
-    reg [31:0] delay_cnt, next_delay_cnt;
-    reg [5:0]  msg_index, next_msg_index;
+    // Sem reset: valores iniciais = estado de espera da inicializacao
+    reg [2:0]  state     = S_WAIT_INIT, next_state;
+    reg [31:0] delay_cnt = 32'd0,       next_delay_cnt;
+    reg [5:0]  msg_index = 6'd0,        next_msg_index;
 
     assign busy = (state != S_IDLE);
 
@@ -180,16 +181,10 @@ module lcd_display (
         end
     end
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            state     <= S_WAIT_INIT;
-            delay_cnt <= 32'd0;
-            msg_index <= 6'd0;
-        end else begin
-            state     <= next_state;
-            delay_cnt <= next_delay_cnt;
-            msg_index <= next_msg_index;
-        end
+    always @(posedge clk) begin
+        state     <= next_state;
+        delay_cnt <= next_delay_cnt;
+        msg_index <= next_msg_index;
     end
 
     always @(*) begin

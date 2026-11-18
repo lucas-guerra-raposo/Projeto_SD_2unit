@@ -1,6 +1,5 @@
 module memory (
     input  wire        clk,
-    input  wire        rst,       // zera as 16 posicoes, assincrono
     input  wire        clr,       // pulso: zera as 16 posicoes na proxima borda
     input  wire        we,        // pulso: grava data_in em addr_w na proxima borda
     input  wire [3:0]  addr_w,
@@ -26,12 +25,9 @@ module memory (
             mem[i] = 16'd0;
     end
 
-    // Escrita e zeramento. Prioridade: rst, depois clr, depois we.
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            for (i = 0; i < 16; i = i + 1)
-                mem[i] <= 16'd0;
-        end else if (clr) begin
+    // Escrita e zeramento. Prioridade: clr, depois we.
+    always @(posedge clk) begin
+        if (clr) begin
             for (i = 0; i < 16; i = i + 1)
                 mem[i] <= 16'd0;
         end else if (we) begin
