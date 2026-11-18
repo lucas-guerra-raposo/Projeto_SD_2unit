@@ -5,11 +5,15 @@ module module_mini_cpu (
     output wire [7:0]  LCD_DATA,
     output wire        LCD_RS,
     output wire        LCD_RW,
-    output wire        LCD_EN
+    output wire        LCD_EN,
+    output wire        LCD_ON,
+    output wire        LCD_BLON
 );
 
     wire clk = CLOCK_50;
     wire rst = ~KEY[0];
+    assign LCD_ON   = 1'b1;
+    assign LCD_BLON = 1'b1;
 
     localparam [2:0]
         OP_LOAD    = 3'b000,
