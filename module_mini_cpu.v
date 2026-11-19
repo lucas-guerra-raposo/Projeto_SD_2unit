@@ -41,7 +41,6 @@ module module_mini_cpu (
     wire ligar_solto  = sr_ligar[1]  & ~sr_ligar[2];
     wire enviar_solto = sr_enviar[1] & ~sr_enviar[2];
 
-    // Sem reset: o sistema parte destes valores iniciais (estado desligado)
     reg  [17:0] ir       = 18'd0;
     reg  [15:0] res_reg  = 16'd0;
     reg  [1:0]  lcd_modo = M_APAGADO;
